@@ -1,0 +1,23 @@
+server:
+  port: 8888
+
+#management:
+#  tracing:
+#    sampling:
+#      probability: 1.0  # 100% запросов трассируются
+
+spring:
+  liquibase:
+    enabled: true
+  application:
+    name: user-service
+  jpa:
+    hibernate:
+      ddl-auto: none
+    database: postgresql
+  datasource:
+    url: jdbc:postgresql://lab2db:5432/task2
+    username: admin
+    password: password
+    driver-class-name: org.postgresql.Driver
+

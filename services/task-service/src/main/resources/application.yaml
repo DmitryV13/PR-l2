@@ -1,0 +1,20 @@
+server:
+  port: 8222
+
+#management:
+#  tracing:
+#    sampling:
+#      probability: 1.0  # 100% запросов трассируются
+
+spring:
+  application:
+    name: task-service
+  jpa:
+    hibernate:
+      ddl-auto: none
+    database: postgresql
+  datasource:
+    url: jdbc:postgresql://lab2db:5432/task2
+    username: admin
+    password: password
+    driver-class-name: org.postgresql.Driver

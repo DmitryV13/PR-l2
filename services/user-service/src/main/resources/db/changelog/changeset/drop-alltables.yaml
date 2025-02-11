@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: drop-alltables
+      author: Dmitry
+      changes:
+        - preConditions:
+            - tableExists:
+                tableName: tasks
+              onFail: CONTINUE
+        - dropTable:
+            tableName: tasks
+        - preConditions:
+            - tableExists:
+                tableName: users
+              onFail: CONTINUE
+        - dropTable:
+            tableName: users

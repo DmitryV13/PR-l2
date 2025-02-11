@@ -1,0 +1,65 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-users-tasks
+      author: Dmitry
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  valueComputed: nextval('users_id_seq')
+              - column:
+                  name: name
+                  value: "Dmitry"
+              - column:
+                  name: email
+                  value: "dmitry@example.com"
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  valueComputed: nextval('users_id_seq')
+              - column:
+                  name: name
+                  value: "Alex"
+              - column:
+                  name: email
+                  value: "alex@example.com"
+        - insert:
+            tableName: tasks
+            columns:
+              - column:
+                  name: id
+                  valueComputed: nextval('tasks_id_seq')
+              - column:
+                  name: user_id
+                  value: 1
+              - column:
+                  name: title
+                  value: "Разработать API"
+        - insert:
+            tableName: tasks
+            columns:
+              - column:
+                  name: id
+                  valueComputed: nextval('tasks_id_seq')
+              - column:
+                  name: user_id
+                  value: 1
+              - column:
+                  name: title
+                  value: "Написать документацию"
+        - insert:
+            tableName: tasks
+            columns:
+              - column:
+                  name: id
+                  valueComputed: nextval('tasks_id_seq')
+              - column:
+                  name: user_id
+                  value: 2
+              - column:
+                  name: title
+                  value: "Протестировать API"
