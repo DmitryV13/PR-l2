@@ -1,0 +1,115 @@
+name: Build & Test
+
+on:
+  push:
+    branches:
+      - l6
+jobs:
+  build-test:
+    name: Build and Test lab2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: 17
+
+      - name: Build task-service
+        run: |
+          cd services/task-service
+          mvn clean
+          mvn install -Dmaven.test.skip=true
+          mvn -B package --file pom.xml -Dmaven.test.skip=true
+
+      - name: Build user-service
+        run: |
+          cd services/user-service
+          mvn clean
+          mvn install -Dmaven.test.skip=true
+          mvn -B package --file pom.xml -Dmaven.test.skip=true
+
+      - name: Build docker image for task-service
+        uses: docker/build-push-action@v6
+        with:
+          context: services/task-service/
+          dockerfile: services/task-service/Dockerfile
+          push: false
+          tags: l2-task-serv:latest
+
+      - name: Build docker image for user-service
+        uses: docker/build-push-action@v6
+        with:
+          context: services/user-service/
+          dockerfile: services/user-service/Dockerfile
+          push: false
+          tags: l2-user-serv:latest
+
+      - name: Creating network for services
+        run: docker network create lab2_network
+
+      - name: Run container for db
+        run: |
+          docker run \
+          -d --name lab2db \
+          --network lab2_network \
+          -e POSTGRES_DB=task2 \
+          -e POSTGRES_USER=admin \
+          -e POSTGRES_PASSWORD=password \
+          -p 5432:5432 \
+          postgres:latest
+
+      - name: Run docker user-service container
+        run: |
+          docker run -d --name l2-user-cont --network lab2_network -p 8080:8888 l2-user-serv:latest
+          sleep 20  
+
+      - name: Run docker task-service container
+        run: |
+          docker run -d --name l2-task-cont --network lab2_network -p 8081:8222 l2-task-serv:latest
+          sleep 20  
+
+      - name: Checking containers' ports and network
+        run: |
+          docker ps
+          docker network inspect lab2_network
+
+      - name: Testing task-service
+        run: curl -v http://localhost:8081/task-api/get-all
+
+      - name: Testing user-service
+        run: curl -X DELETE -v http://localhost:8080/user-api/delete?email=alex@example.com
+
+      - name: Deleting containers and images
+        run: |
+          docker stop l2-task-cont
+          docker stop l2-user-cont
+          docker rm l2-task-cont
+          docker rm l2-user-cont 
+          docker rmi l2-task-serv
+          docker rmi l2-user-serv 
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Push to DockerHub task-service
+        uses: docker/build-push-action@v6
+        with:
+          context: services/task-service/
+          dockerfile: services/task-service/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/l2-user-serv:1.6
+
+      - name: Push to DockerHub user-service
+        uses: docker/build-push-action@v6
+        with:
+          context: services/user-service/
+          dockerfile: services/user-service/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/l2-task-serv:1.6
